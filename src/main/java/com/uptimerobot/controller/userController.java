@@ -34,9 +34,12 @@ public class userController {
     }
 
     @DeleteMapping("/deleteurl/{urlId}")
-    public ResponseEntity<String> deleteUrl(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userService.getUser(userDetails);
-        userService.deleteUrl(user.getId(),userDetails);
+    public ResponseEntity<String> deleteUrl(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Integer urlId) {
+
+        userService.deleteUrl(urlId, userDetails);
+
         return ResponseEntity.ok("URL deleted successfully");
     }
 
