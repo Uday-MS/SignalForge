@@ -4,6 +4,7 @@ import com.uptimerobot.entity.MonitoredUrl;
 import com.uptimerobot.entity.User;
 import com.uptimerobot.repository.JPARepo;
 import com.uptimerobot.repository.userRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -26,11 +27,10 @@ public class userService {
     }
 
     public List<MonitoredUrl> getUrl(Integer userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return user.getUrls();
+        return jpaRepo.findByUserId(userId);
     }
 
+    @Transactional
     public void deleteUrl(Integer urlId, UserDetails userDetails) {
         User user = getUser(userDetails);
         MonitoredUrl url = jpaRepo.findById(urlId)

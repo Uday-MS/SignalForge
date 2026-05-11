@@ -11,7 +11,7 @@ public class MonitorScheduler {
     public MonitorScheduler(MonitoredUrlService monitoredUrlService){
         this.monitoredUrlService=monitoredUrlService;
     }
-    @Scheduled(initialDelay = 60000, fixedDelay = 60000)
+    @Scheduled(initialDelay = 5000, fixedDelay = 60000)
     public void runMonitor(){
         monitoredUrlService.ping();
     }

@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +44,6 @@ public class oAuthController {
 
        String token = jwtUtil.generateToken(email);
 
-        return Map.of("token",token,
-                "message","Goggle login successful");
+        return new RedirectView("http://localhost:5500/index.html?token=" + token + "&email=" + email);
     }
 }
