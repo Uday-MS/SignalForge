@@ -4,6 +4,7 @@ import com.uptimerobot.entity.User;
 import com.uptimerobot.jwt.JwtUtil;
 import com.uptimerobot.repository.userRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,9 @@ public class oAuthController {
     @Autowired
     public userRepo userRepo;
 
+    @Value("${FRONTEND_URL}")
+    private String frontendUrl;
+
     @GetMapping("/oauth-success")
     public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken){
         Map<String , Object> attributes=oAuth2AuthenticationToken.getPrincipal().getAttributes();
@@ -42,8 +46,8 @@ public class oAuthController {
             userRepo.save(user);
         }
 
-       String token = jwtUtil.generateToken(email);
+        String token = jwtUtil.generateToken(email);
 
-        return new RedirectView("http://localhost:5500/index.html?token=" + token + "&email=" + email);
+        return new RedirectView(frontendUrl + "/index.html?token=" + token + "&email=" + email);
     }
 }
