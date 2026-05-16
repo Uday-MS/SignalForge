@@ -9,7 +9,6 @@ import com.uptimerobot.repository.userRepo;
 import com.uptimerobot.services.OtpService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,10 +19,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/uptimerobot/auth")
 public class AuthController {
+
+    private static final Logger logger = Logger.getLogger(AuthController.class.getName());
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -52,11 +54,12 @@ public class AuthController {
 
         try {
             otpService.sendOtp(request.getEmail());
-        }catch (Exception e){
+        } catch (Exception e) {
+            logger.severe("OTP send failed: " + e.getMessage() + " | Cause: " + e.getCause());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("Error","Could not send the otp , enter valid email address"));
+                    .body(Map.of("Error", "Could not send OTP: " + e.getMessage()));
         }
-        return ResponseEntity.ok().body("Sent the otp to the "+request.getEmail());
+        return ResponseEntity.ok().body("Sent the otp to the " + request.getEmail());
     }
 
     @PostMapping("/verify-otp")
