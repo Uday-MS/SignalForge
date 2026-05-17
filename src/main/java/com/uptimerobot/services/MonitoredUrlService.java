@@ -18,6 +18,7 @@ public class MonitoredUrlService {
     @Autowired private JPARepo repo;
     @Autowired private PingService pingService;
 
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20);
     public void save(MonitoredUrl url) {
         repo.save(url);
     }
@@ -33,9 +34,9 @@ public class MonitoredUrlService {
 
     public void ping() {
         List<MonitoredUrl> urlList = repo.findAll();
-        ExecutorService executor = Executors.newFixedThreadPool(20);
+
         for (MonitoredUrl url : urlList) {
-            executor.submit(() -> {
+            executorService.submit(() -> {
                 // FIX: pingResult is now a local variable, not shared state
                 pingResult result = pingService.checkStatus(url.getUrl());
                 url.setLast_status(result.getStatus());
@@ -44,6 +45,6 @@ public class MonitoredUrlService {
                 repo.save(url);
             });
         }
-        executor.shutdown();
+
     }
 }

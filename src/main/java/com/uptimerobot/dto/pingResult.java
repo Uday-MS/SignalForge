@@ -2,7 +2,7 @@ package com.uptimerobot.dto;
 
 import org.springframework.stereotype.Component;
 
-@Component
+
 public class pingResult {
     private long responseTime;
     private String status;

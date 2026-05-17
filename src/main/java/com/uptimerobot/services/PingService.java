@@ -10,13 +10,13 @@ import java.lang.module.Configuration;
 
 @Service
 public class PingService {
+
     private RestTemplate restTemplate;
-    private pingResult pingResult;
     @Autowired
-    public PingService(RestTemplate restTemplate,pingResult pingResult){
+    public PingService(RestTemplate restTemplate){
         this.restTemplate=restTemplate;
-        this.pingResult=pingResult;
     }
+
     public pingResult checkStatus(String url){
             try{
                 long start= System.currentTimeMillis();
