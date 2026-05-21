@@ -45,6 +45,5 @@ public class MonitoredUrlService {
                 repo.save(url);
             });
         }
-
     }
 }
