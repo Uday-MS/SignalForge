@@ -55,6 +55,7 @@ public class oAuthController {
             userRepo.save(user);
         }
         String sessionId= jwtUtil.generateSessionId();
+        sessionService.createSession(sessionId,String.valueOf(user.getId()));
         String token = jwtUtil.generateToken(email,sessionId);
 
         String refreshToken= jwtUtil.generateRefreshToken();
