@@ -113,12 +113,18 @@ public class AuthController {
       String refreshToken= jwtUtil.generateRefreshToken();
       sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),request.getEmail());
 
-      Cookie cookie= new Cookie("refreshToken",refreshToken);
-      cookie.setHttpOnly(true);
-      cookie.setSecure(secureCookie);
-      cookie.setPath("/");
-      cookie.setMaxAge(7 * 24 * 60 * 60);
-      response.addCookie(cookie);
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);        // must be true in production
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.setHeader("Set-Cookie",
+                "refreshToken=" + refreshToken +
+                        "; HttpOnly" +
+                        "; Secure" +
+                        "; Path=/" +
+                        "; Max-Age=" + (7 * 24 * 60 * 60) +
+                        "; SameSite=None");                // ← this is the key
       return ResponseEntity.ok().body(Map.of("token",token));
     }
 
@@ -138,12 +144,21 @@ public class AuthController {
                 }
             }
         }
-        Cookie expired=new Cookie("refreshToken",refreshToken);
-        expired.setHttpOnly(true);
-        expired.setSecure(secureCookie);
-        expired.setMaxAge(0);
-        expired.setPath("/");
-        response.addCookie(expired);
+        if (refreshToken != null) {
+            sessionService.deleteRefreshToken(refreshToken);
+        }
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);        // must be true in production
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.setHeader("Set-Cookie",
+                "refreshToken=" + refreshToken +
+                        "; HttpOnly" +
+                        "; Secure" +
+                        "; Path=/" +
+                        "; Max-Age=" + (7 * 24 * 60 * 60) +
+                        "; SameSite=None");                // ← this is the key
         return ResponseEntity.ok().body(Map.of("Message","Logged out successfully"));
     }
 

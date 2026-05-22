@@ -33,7 +33,7 @@ public class SessionService {
      }
      public void storeRefreshToken(String refreshToken,String userId,String email){
          redisTemplate.opsForValue()
-                 .set(REFRESH_PREFIX+refreshToken,email+":"+userId,REFRESH_TTL,TimeUnit.DAYS);
+                 .set(REFRESH_PREFIX+refreshToken,userId+":"+email,REFRESH_TTL,TimeUnit.DAYS);
 
      }
      public String getUserIdFromRefreshToken(String refreshToken){
