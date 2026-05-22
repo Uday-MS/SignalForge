@@ -12,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -30,9 +31,10 @@ public class JwtUtil {
                 ,"HmacSHA256"
         );
     }
-    public String generateToken(String email){
+    public String generateToken(String email,String sessionId){
         return Jwts.builder()
                 .subject(email)
+                .claim("sessionId",sessionId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis()+1000*60*60))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -46,12 +48,19 @@ public class JwtUtil {
                 .getPayload();
     }
     public String extractUsername(String token){
-         return extractAllClaims(token).getSubject();
+
+        return extractAllClaims(token).getSubject();
+    }
+    public String generateSessionId(){
+        return UUID.randomUUID().toString();
+    }
+    public String generateRefreshToken(){
+        return UUID.randomUUID().toString();
     }
     public boolean isTokenExpired(String token){
         return extractAllClaims(token).getExpiration().before(new Date());
     }
-    public boolean isTokenValid(String token,String username){
-        return extractAllClaims(token).getSubject().equals(username)&&!isTokenExpired(token);
+    public String extractSessionId(String token){
+        return extractAllClaims(token).get("sessionId",String.class);
     }
 }

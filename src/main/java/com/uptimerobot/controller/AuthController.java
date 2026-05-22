@@ -7,8 +7,13 @@ import com.uptimerobot.entity.User;
 import com.uptimerobot.jwt.JwtUtil;
 import com.uptimerobot.repository.userRepo;
 import com.uptimerobot.services.OtpService;
+import com.uptimerobot.services.SessionService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,6 +42,11 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private OtpService otpService;
+    @Autowired
+    private SessionService sessionService;
+
+    @Value("${COOKIE_SECURE}")
+    private boolean secureCookie;
 
     Map <String,String> pendingRequests = new ConcurrentHashMap<>();
 
@@ -63,7 +73,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity verifyOtp(@RequestBody OtpRequest otpRequest){
+    public ResponseEntity verifyOtp(@RequestBody OtpRequest otpRequest,HttpServletResponse response){
         boolean valid= otpService.verifyOtp(otpRequest.getEmail(),otpRequest.getOtp());
         if(!valid){
             return ResponseEntity
@@ -74,17 +84,88 @@ public class AuthController {
         user.setEmail(otpRequest.getEmail());
         user.setPassword(passwordEncoder.encode(rawPassword));
         userRepo.save(user);
+        String sessionId= jwtUtil.generateSessionId();
+        String token= jwtUtil.generateToken(otpRequest.getEmail(),sessionId);
+         sessionService.createSession(sessionId,String.valueOf(user.getId()));
+        String refreshToken= jwtUtil.generateRefreshToken();
+        sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()), otpRequest.getEmail());
 
-        String token = jwtUtil.generateToken(otpRequest.getEmail());
+        Cookie cookie= new Cookie("refreshToken",refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.addCookie(cookie);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("token",token));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
-        String token = jwtUtil.generateToken(request.getEmail());
-        return ResponseEntity.ok(token);
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+      authenticationManager
+              .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail()
+                      ,request.getPassword()));
+      User user=userRepo.findByEmail(request.getEmail()).orElseThrow();
+
+      String sessionId= jwtUtil.generateSessionId();
+      String token= jwtUtil.generateToken(request.getEmail(),sessionId);
+      sessionService.createSession(sessionId,String.valueOf(user.getId()));
+
+      String refreshToken= jwtUtil.generateRefreshToken();
+      sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),request.getEmail());
+
+      Cookie cookie= new Cookie("refreshToken",refreshToken);
+      cookie.setHttpOnly(true);
+      cookie.setSecure(secureCookie);
+      cookie.setPath("/");
+      cookie.setMaxAge(7 * 24 * 60 * 60);
+      response.addCookie(cookie);
+      return ResponseEntity.ok().body(Map.of("token",token));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?>logout(@RequestHeader("AUTHORIZATION")String authHeader
+            ,HttpServletResponse response,HttpServletRequest request){
+
+        String token= authHeader.substring(7);
+        String sessionId= jwtUtil.extractSessionId(token);
+        sessionService.deleteSession(sessionId);
+
+        String refreshToken=null;
+        if(request.getCookies()!=null){
+            for(Cookie expired:request.getCookies()){
+                if(expired.getName().equals("refreshToken")){
+                    refreshToken=expired.getValue();
+                }
+            }
+        }
+        Cookie expired=new Cookie("refreshToken",refreshToken);
+        expired.setHttpOnly(true);
+        expired.setSecure(secureCookie);
+        expired.setMaxAge(0);
+        expired.setPath("/");
+        response.addCookie(expired);
+        return ResponseEntity.ok().body(Map.of("Message","Logged out successfully"));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?>refresh(HttpServletRequest request , HttpServletResponse response){
+        String refreshToken=null;
+        if(request.getCookies()!=null){
+            for(Cookie cookie :request.getCookies()){
+               if(cookie.getName().equals("refreshToken")){
+                    refreshToken=cookie.getValue();
+                    break;
+               }
+            }
+        }
+        if(refreshToken==null){
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error","unauthorized , login to access the app"));
+        }
+        String email= sessionService.getEmailFromtRefreshToken(refreshToken);
+        String sessionId= jwtUtil.generateSessionId();
+        String newAccessToken= jwtUtil.generateToken(email,sessionId);
+        return ResponseEntity.ok(Map.of("token",newAccessToken));
     }
 }

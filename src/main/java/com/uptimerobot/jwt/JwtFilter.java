@@ -1,5 +1,6 @@
 package com.uptimerobot.jwt;
 
+import com.uptimerobot.services.SessionService;
 import com.uptimerobot.services.UserDetailsImpl;
 import io.jsonwebtoken.Jwt;
 import jakarta.servlet.FilterChain;
@@ -16,14 +17,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    @Autowired
-    private UserDetailsImpl userDetailsImpl;
+
     @Autowired
     private JwtUtil jwtUtil;
-
+    @Autowired
+    private SessionService sessionService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -38,25 +40,34 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
         final String authHeader = request.getHeader("Authorization");
-        String username=null;
-        String token=null;
-        if(authHeader!=null&&authHeader.startsWith("Bearer ")){
-            token = authHeader.substring(7);
-            try{
-                username= jwtUtil.extractUsername(token);
-            }catch (Exception e){
-              filterChain.doFilter(request,response);
-              return;
-            }
+        if(authHeader==null||!authHeader.startsWith("Bearer ")){
+            filterChain.doFilter(request,response);
+            return;
         }
-        if(username!=null&& SecurityContextHolder.getContext().getAuthentication()==null){
-            UserDetails userDetails=userDetailsImpl.loadUserByUsername(username);
-            if(jwtUtil.isTokenValid(token,userDetails.getUsername())){
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=
-                        new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        String token=authHeader.substring(7);
+        try{
+            String sessionId= jwtUtil.extractSessionId(token);
+            if(!sessionService.isSessionValid(sessionId)){
+                filterChain.doFilter(request,response);
+                return;
             }
+            if(jwtUtil.isTokenExpired(token)){
+                filterChain.doFilter(request,response);
+                return;
+            }
+            String username= jwtUtil.extractUsername(token);
+
+            org.springframework.security.core.userdetails.User principal =
+                    new org.springframework.security.core.userdetails.User(username, "", List.of());
+
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(principal, null, List.of());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        }
+        catch (Exception e){
+            System.out.println("JWT FILTER ERROR: " + e.getMessage());
+            e.printStackTrace();
         }
         filterChain.doFilter(request,response);
     }

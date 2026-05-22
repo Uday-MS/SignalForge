@@ -3,6 +3,9 @@ package com.uptimerobot.controller;
 import com.uptimerobot.entity.User;
 import com.uptimerobot.jwt.JwtUtil;
 import com.uptimerobot.repository.userRepo;
+import com.uptimerobot.services.SessionService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -28,8 +31,14 @@ public class oAuthController {
     @Value("${FRONTEND_URL}")
     private String frontendUrl;
 
+    @Autowired
+    private SessionService sessionService;
+
+    @Value("${COOKIE_SECURE}")
+    private boolean secureCookie;
+
     @GetMapping("/oauth-success")
-    public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken){
+    public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken, HttpServletResponse response){
         Map<String , Object> attributes=oAuth2AuthenticationToken.getPrincipal().getAttributes();
         String email= attributes.get("email").toString();
         String name =attributes.get("name").toString();
@@ -45,9 +54,18 @@ public class oAuthController {
             user.setPassword("");
             userRepo.save(user);
         }
+        String sessionId= jwtUtil.generateSessionId();
+        String token = jwtUtil.generateToken(email,sessionId);
 
-        String token = jwtUtil.generateToken(email);
+        String refreshToken= jwtUtil.generateRefreshToken();
+        sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),email);
 
+        Cookie cookie= new Cookie("refreshToken",refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        response.addCookie(cookie);
         return new RedirectView(frontendUrl + "/index.html?token=" + token + "&email=" + email);
     }
 }
