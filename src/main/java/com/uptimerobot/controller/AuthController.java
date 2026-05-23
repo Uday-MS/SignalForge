@@ -113,11 +113,6 @@ public class AuthController {
       String refreshToken= jwtUtil.generateRefreshToken();
       sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),request.getEmail());
 
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secureCookie);        // must be true in production
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
         response.setHeader("Set-Cookie",
                 "refreshToken=" + refreshToken +
                         "; HttpOnly" +
@@ -129,58 +124,60 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?>logout(@RequestHeader("AUTHORIZATION")String authHeader
-            ,HttpServletResponse response,HttpServletRequest request){
-
-        String token= authHeader.substring(7);
-        String sessionId= jwtUtil.extractSessionId(token);
+    public ResponseEntity<?> logout(@RequestHeader("AUTHORIZATION") String authHeader,
+                                    HttpServletResponse response, HttpServletRequest request) {
+        String token = authHeader.substring(7);
+        String sessionId = jwtUtil.extractSessionId(token);
         sessionService.deleteSession(sessionId);
 
-        String refreshToken=null;
-        if(request.getCookies()!=null){
-            for(Cookie expired:request.getCookies()){
-                if(expired.getName().equals("refreshToken")){
-                    refreshToken=expired.getValue();
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if (c.getName().equals("refreshToken")) {
+                    sessionService.deleteRefreshToken(c.getValue());
+                    break;
                 }
             }
         }
-        if (refreshToken != null) {
-            sessionService.deleteRefreshToken(refreshToken);
-        }
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secureCookie);        // must be true in production
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
+
         response.setHeader("Set-Cookie",
-                "refreshToken=" + refreshToken +
+                "refreshToken=" +
                         "; HttpOnly" +
                         "; Secure" +
                         "; Path=/" +
-                        "; Max-Age=" + (7 * 24 * 60 * 60) +
-                        "; SameSite=None");                // ← this is the key
-        return ResponseEntity.ok().body(Map.of("Message","Logged out successfully"));
+                        "; Max-Age=0" +
+                        "; SameSite=None");
+
+        return ResponseEntity.ok(Map.of("Message", "Logged out successfully"));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?>refresh(HttpServletRequest request , HttpServletResponse response){
-        String refreshToken=null;
-        if(request.getCookies()!=null){
-            for(Cookie cookie :request.getCookies()){
-               if(cookie.getName().equals("refreshToken")){
-                    refreshToken=cookie.getValue();
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        String refreshToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("refreshToken")) {
+                    refreshToken = cookie.getValue();
                     break;
-               }
+                }
             }
         }
-        if(refreshToken==null){
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error","unauthorized , login to access the app"));
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "No refresh token"));
         }
-        String email= sessionService.getEmailFromtRefreshToken(refreshToken);
-        String sessionId= jwtUtil.generateSessionId();
-        String newAccessToken= jwtUtil.generateToken(email,sessionId);
-        return ResponseEntity.ok(Map.of("token",newAccessToken));
+        String value = sessionService.getUserIdFromRefreshToken(refreshToken);
+        if (value == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Session expired, please login again"));
+        }
+        String userId = value.split(":")[0];
+        String email = value.split(":")[1];
+
+
+        String sessionId = jwtUtil.generateSessionId();
+        sessionService.createSession(sessionId, userId);
+        String newAccessToken = jwtUtil.generateToken(email, sessionId);
+
+        return ResponseEntity.ok(Map.of("token", newAccessToken));
     }
 }
