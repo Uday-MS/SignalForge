@@ -90,12 +90,14 @@ public class AuthController {
         String refreshToken= jwtUtil.generateRefreshToken();
         sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()), otpRequest.getEmail());
 
-        Cookie cookie= new Cookie("refreshToken",refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secureCookie);
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(cookie);
+        response.setHeader("Set-Cookie",
+                "refreshToken=" + refreshToken +
+                        "; HttpOnly" +
+                        "; Secure" +
+                        "; Path=/" +
+                        "; Max-Age=" + (7 * 24 * 60 * 60) +
+                        "; SameSite=None" +
+                        "; Partitioned");    // ← add this
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("token",token));
     }
 
@@ -119,7 +121,8 @@ public class AuthController {
                         "; Secure" +
                         "; Path=/" +
                         "; Max-Age=" + (7 * 24 * 60 * 60) +
-                        "; SameSite=None");                // ← this is the key
+                        "; SameSite=None" +
+                        "; Partitioned");    // ← add this               // ← this is the key
       return ResponseEntity.ok().body(Map.of("token",token));
     }
 
@@ -145,7 +148,8 @@ public class AuthController {
                         "; Secure" +
                         "; Path=/" +
                         "; Max-Age=0" +
-                        "; SameSite=None");
+                        "; SameSite=None" +
+                        "; Partitioned");
 
         return ResponseEntity.ok(Map.of("Message", "Logged out successfully"));
     }

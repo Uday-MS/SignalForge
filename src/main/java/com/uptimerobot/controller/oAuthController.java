@@ -61,12 +61,14 @@ public class oAuthController {
         String refreshToken= jwtUtil.generateRefreshToken();
         sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),email);
 
-        Cookie cookie= new Cookie("refreshToken",refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secureCookie);
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(cookie);
+        response.setHeader("Set-Cookie",
+                "refreshToken=" + refreshToken +
+                        "; HttpOnly" +
+                        "; Secure" +
+                        "; Path=/" +
+                        "; Max-Age=" + (7 * 24 * 60 * 60) +
+                        "; SameSite=None" +
+                        "; Partitioned");    // ← add this
         return new RedirectView(frontendUrl + "/index.html?token=" + token + "&email=" + email);
     }
 }
