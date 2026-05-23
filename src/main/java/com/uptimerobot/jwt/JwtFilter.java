@@ -41,18 +41,24 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         final String authHeader = request.getHeader("Authorization");
         if(authHeader==null||!authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"No token provided\"}");
             return;
         }
         String token=authHeader.substring(7);
         try{
             String sessionId= jwtUtil.extractSessionId(token);
             if(!sessionService.isSessionValid(sessionId)){
-                filterChain.doFilter(request,response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Session expired\"}");
                 return;
             }
             if(jwtUtil.isTokenExpired(token)){
-                filterChain.doFilter(request,response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Token expired\"}");
                 return;
             }
             String username= jwtUtil.extractUsername(token);
