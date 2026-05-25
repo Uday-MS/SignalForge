@@ -17,16 +17,16 @@ import java.time.Duration;
 @Configuration
 public class Appconfig {
     @Bean
-    public ObjectMapper objectMapper(){
-        return  new ObjectMapper();
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
     @Bean
-    //configured restTemplate
-    public RestTemplate configuredRestTemplate(){
-        SimpleClientHttpRequestFactory factory=new SimpleClientHttpRequestFactory();
+    // configured restTemplate
+    public RestTemplate configuredRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setReadTimeout(10000);
         factory.setConnectTimeout(5000);
-    return new RestTemplate(factory);
+        return new RestTemplate(factory);
     }
 }

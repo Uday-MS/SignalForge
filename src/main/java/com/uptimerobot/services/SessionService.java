@@ -18,6 +18,8 @@ public class SessionService {
 
     private final static String REFRESH_PREFIX="refresh:";
 
+    private final static String USER_REFRESH_PREFIX="user_refresh:";
+
     private final static long REFRESH_TTL=7;
 
      public void createSession(String sessionId,String userId){
@@ -31,10 +33,15 @@ public class SessionService {
 
          redisTemplate.delete(SESSION_PREFIX+sessionId);
      }
+     public String getUserIdFromSession(String sessionId){
+         return redisTemplate.opsForValue().get(SESSION_PREFIX+sessionId);
+     }
      public void storeRefreshToken(String refreshToken,String userId,String email){
          redisTemplate.opsForValue()
                  .set(REFRESH_PREFIX+refreshToken,userId+":"+email,REFRESH_TTL,TimeUnit.DAYS);
-
+         // Reverse mapping: userId -> refreshToken (so we can delete by userId on logout)
+         redisTemplate.opsForValue()
+                 .set(USER_REFRESH_PREFIX+userId,refreshToken,REFRESH_TTL,TimeUnit.DAYS);
      }
      public String getUserIdFromRefreshToken(String refreshToken){
          return redisTemplate.opsForValue().get(REFRESH_PREFIX+refreshToken);
@@ -46,6 +53,14 @@ public class SessionService {
      }
      public void deleteRefreshToken(String refreshToken){
          redisTemplate.delete(REFRESH_PREFIX+refreshToken);
+     }
+
+     public void deleteRefreshTokenByUserId(String userId){
+         String refreshToken = redisTemplate.opsForValue().get(USER_REFRESH_PREFIX+userId);
+         if(refreshToken != null){
+             redisTemplate.delete(REFRESH_PREFIX+refreshToken);
+         }
+         redisTemplate.delete(USER_REFRESH_PREFIX+userId);
      }
 
 }

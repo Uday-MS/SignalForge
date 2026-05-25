@@ -48,28 +48,28 @@ public class oAuthController {
     }
 
     @GetMapping("/oauth-success")
-    public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken, HttpServletResponse response){
-        Map<String , Object> attributes=oAuth2AuthenticationToken.getPrincipal().getAttributes();
-        String email= attributes.get("email").toString();
-        String name =attributes.get("name").toString();
-        Optional<User>existingUser=userRepo.findByEmail(email);
+    public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken, HttpServletResponse response) {
+        Map<String, Object> attributes = oAuth2AuthenticationToken.getPrincipal().getAttributes();
+        String email = attributes.get("email").toString();
+        String name = attributes.get("name").toString();
+        Optional<User> existingUser = userRepo.findByEmail(email);
 
         User user;
 
-        if (existingUser.isPresent()){
-            user=existingUser.get();
-        }else{
-            user=new User();
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
+        } else {
+            user = new User();
             user.setEmail(email);
             user.setPassword("");
             userRepo.save(user);
         }
-        String sessionId= jwtUtil.generateSessionId();
-        sessionService.createSession(sessionId,String.valueOf(user.getId()));
-        String token = jwtUtil.generateToken(email,sessionId);
+        String sessionId = jwtUtil.generateSessionId();
+        sessionService.createSession(sessionId, String.valueOf(user.getId()));
+        String token = jwtUtil.generateToken(email, sessionId);
 
-        String refreshToken= jwtUtil.generateRefreshToken();
-        sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),email);
+        String refreshToken = jwtUtil.generateRefreshToken();
+        sessionService.storeRefreshToken(refreshToken, String.valueOf(user.getId()), email);
 
         ResponseCookie cookie = buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60);
         response.addHeader("Set-Cookie", cookie.toString());

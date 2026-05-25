@@ -130,8 +130,18 @@ public class AuthController {
                                     HttpServletResponse response, HttpServletRequest request) {
         String token = authHeader.substring(7);
         String sessionId = jwtUtil.extractSessionId(token);
+
+        // Get userId from session BEFORE deleting it
+        String userId = sessionService.getUserIdFromSession(sessionId);
         sessionService.deleteSession(sessionId);
 
+        // Primary: delete refresh token via reverse mapping (userId -> refreshToken)
+        // This works even when the browser doesn't send the cookie (third-party cookie blocking)
+        if (userId != null) {
+            sessionService.deleteRefreshTokenByUserId(userId);
+        }
+
+        // Fallback: also try cookie-based deletion in case reverse mapping was missing
         if (request.getCookies() != null) {
             for (Cookie c : request.getCookies()) {
                 if (c.getName().equals("refreshToken")) {
