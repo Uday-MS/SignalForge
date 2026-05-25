@@ -4,7 +4,7 @@ import com.uptimerobot.entity.User;
 import com.uptimerobot.jwt.JwtUtil;
 import com.uptimerobot.repository.userRepo;
 import com.uptimerobot.services.SessionService;
-import jakarta.servlet.http.Cookie;
+import org.springframework.http.ResponseCookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +37,16 @@ public class oAuthController {
     @Value("${COOKIE_SECURE}")
     private boolean secureCookie;
 
+    private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {
+        return ResponseCookie.from("refreshToken", value)
+                .httpOnly(true)
+                .secure(secureCookie)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .sameSite(secureCookie ? "None" : "Lax")
+                .build();
+    }
+
     @GetMapping("/oauth-success")
     public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken, HttpServletResponse response){
         Map<String , Object> attributes=oAuth2AuthenticationToken.getPrincipal().getAttributes();
@@ -61,14 +71,8 @@ public class oAuthController {
         String refreshToken= jwtUtil.generateRefreshToken();
         sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),email);
 
-        response.setHeader("Set-Cookie",
-                "refreshToken=" + refreshToken +
-                        "; HttpOnly" +
-                        "; Secure" +
-                        "; Path=/" +
-                        "; Max-Age=" + (7 * 24 * 60 * 60) +
-                        "; SameSite=None" +
-                        "; Partitioned");    // ← add this
+        ResponseCookie cookie = buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60);
+        response.addHeader("Set-Cookie", cookie.toString());
         return new RedirectView(frontendUrl + "/index.html?token=" + token + "&email=" + email);
     }
 }

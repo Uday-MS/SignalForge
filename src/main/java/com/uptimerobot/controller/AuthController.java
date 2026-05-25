@@ -11,6 +11,7 @@ import com.uptimerobot.services.SessionService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +50,16 @@ public class AuthController {
     private boolean secureCookie;
 
     Map <String,String> pendingRequests = new ConcurrentHashMap<>();
+
+    private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {
+        return ResponseCookie.from("refreshToken", value)
+                .httpOnly(true)
+                .secure(secureCookie)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .sameSite(secureCookie ? "None" : "Lax")
+                .build();
+    }
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@Valid @RequestBody RegisterRequest request, BindingResult result) {
@@ -90,14 +101,8 @@ public class AuthController {
         String refreshToken= jwtUtil.generateRefreshToken();
         sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()), otpRequest.getEmail());
 
-        response.setHeader("Set-Cookie",
-                "refreshToken=" + refreshToken +
-                        "; HttpOnly" +
-                        "; Secure" +
-                        "; Path=/" +
-                        "; Max-Age=" + (7 * 24 * 60 * 60) +
-                        "; SameSite=None" +
-                        "; Partitioned");    // ← add this
+        ResponseCookie cookie = buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60);
+        response.addHeader("Set-Cookie", cookie.toString());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("token",token));
     }
 
@@ -115,14 +120,8 @@ public class AuthController {
       String refreshToken= jwtUtil.generateRefreshToken();
       sessionService.storeRefreshToken(refreshToken,String.valueOf(user.getId()),request.getEmail());
 
-        response.setHeader("Set-Cookie",
-                "refreshToken=" + refreshToken +
-                        "; HttpOnly" +
-                        "; Secure" +
-                        "; Path=/" +
-                        "; Max-Age=" + (7 * 24 * 60 * 60) +
-                        "; SameSite=None" +
-                        "; Partitioned");    // ← add this               // ← this is the key
+        ResponseCookie cookie = buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60);
+        response.addHeader("Set-Cookie", cookie.toString());
       return ResponseEntity.ok().body(Map.of("token",token));
     }
 
@@ -142,14 +141,8 @@ public class AuthController {
             }
         }
 
-        response.setHeader("Set-Cookie",
-                "refreshToken=" +
-                        "; HttpOnly" +
-                        "; Secure" +
-                        "; Path=/" +
-                        "; Max-Age=0" +
-                        "; SameSite=None" +
-                        "; Partitioned");
+        ResponseCookie expiredCookie = buildRefreshCookie("", 0);
+        response.addHeader("Set-Cookie", expiredCookie.toString());
 
         return ResponseEntity.ok(Map.of("Message", "Logged out successfully"));
     }
