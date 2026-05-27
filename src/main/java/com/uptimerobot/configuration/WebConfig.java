@@ -52,6 +52,8 @@ public class WebConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/uptimerobot/auth/**").permitAll()
                         .requestMatchers("/uptimerobot/oauth-success").permitAll()
+                        .requestMatchers("/uptimerobot/stats").permitAll()
+                        .requestMatchers("/", "/index.html", "/*.css", "/*.js").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

@@ -36,7 +36,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 path.startsWith("/login") ||
                 path.startsWith("/error") ||
                 path.startsWith("/uptimerobot/auth") ||
-                path.startsWith("/uptimerobot/oauth-success")) {
+                path.startsWith("/uptimerobot/oauth-success")
+                || path.startsWith("/uptimerobot/stats")
+                || path.equals("/")
+                || path.endsWith(".html")
+                || path.endsWith(".css")
+                || path.endsWith(".js")
+        ) {
             filterChain.doFilter(request, response);
             return;
         }
