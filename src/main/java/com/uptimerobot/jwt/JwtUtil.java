@@ -63,4 +63,13 @@ public class JwtUtil {
     public String extractSessionId(String token){
         return extractAllClaims(token).get("sessionId",String.class);
     }
+    public String extractSessionIdIgnoreExpiry(String token){
+        try {
+            return Jwts.parser().verifyWith((SecretKey)key).clockSkewSeconds(Long.MAX_VALUE/1000).build()
+                    .parseSignedClaims(token).getPayload().get("sessionId", String.class);
+        }
+         catch (Exception e){
+               return null;
+         }
+    }
 }

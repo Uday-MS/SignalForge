@@ -11,6 +11,7 @@ import com.uptimerobot.services.SessionService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.hibernate.query.sqm.internal.SqmUtil;
 import org.springframework.http.ResponseCookie;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,23 +169,37 @@ public class AuthController {
                 }
             }
         }
-        if (refreshToken == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "No refresh token"));
-        }
-        String value = sessionService.getUserIdFromRefreshToken(refreshToken);
-        if (value == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Session expired, please login again"));
-        }
-        String userId = value.split(":")[0];
-        String email = value.split(":")[1];
+       if(refreshToken==null){
+           try{
+               String authHeader=request.getHeader("Authorization");
+               if(authHeader!=null& authHeader.startsWith("Bearer ")){
+                   String expiredToken = authHeader.substring(7);
+                   String session= jwtUtil.extractSessionIdIgnoreExpiry(expiredToken);
+                   if(session!=null){
+                       String userId=sessionService.getUserIdFromSession(session);
+                       if(userId!=null){
+                           refreshToken=sessionService.getRefreshTokenByUserId(userId);
+                       }
+                   }
+               }
+           }
+           catch (Exception Ignored){
 
-
-        String sessionId = jwtUtil.generateSessionId();
-        sessionService.createSession(sessionId, userId);
-        String newAccessToken = jwtUtil.generateToken(email, sessionId);
-
+           }
+       }
+       if(refreshToken==null){
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                   .body(Map.of("Error","Please login once again"));
+       }
+       String value=sessionService.getUserIdFromRefreshToken(refreshToken);
+       if(value==null){
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                   .body(Map.of("Error","Please login once agian session Expired"));
+       }
+       String userId=value.split(":")[0];
+       String email =value.split(":")[1];
+       String newSessionID= jwtUtil.generateSessionId();
+       String newAccessToken= jwtUtil.generateToken(email,newSessionID);
         return ResponseEntity.ok(Map.of("token", newAccessToken));
     }
 }

@@ -61,6 +61,7 @@ public class SessionService {
     }
 
     public void deleteRefreshToken(String refreshToken) {
+
         redisTemplate.delete(REFRESH_PREFIX + refreshToken);
     }
 
@@ -71,5 +72,7 @@ public class SessionService {
         }
         redisTemplate.delete(USER_REFRESH_PREFIX + userId);
     }
-
+    public String getRefreshTokenByUserId(String userId) {
+        return redisTemplate.opsForValue().get(USER_REFRESH_PREFIX + userId);
+    }
 }
