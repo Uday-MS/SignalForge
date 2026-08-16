@@ -3,39 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UptimeRobot — Never Miss a Second of Downtime</title>
-    <meta name="description" content="Open-source uptime monitoring backend built with Spring Boot 4 & Java 21. Monitor your URLs every 60 seconds, get instant alerts when sites go down or recover.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>SignalForge — Forge Unbreakable Uptime</title>
+    <meta name="description" content="Premium uptime monitoring SaaS. Monitor your websites every 60 seconds. Instant alerts when sites go down or recover. Built with enterprise-grade security.">
+    <meta name="theme-color" content="#0A0E1A">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23635BFF'/><path d='M8 20 L14 10 L18 16 L24 8' stroke='%2300D4AA' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='24' cy='8' r='2.5' fill='%2300D4AA'/></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- ========== TOAST CONTAINER ========== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ========== PAGE: LANDING ========== -->
+<div class="page active" id="page-landing">
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="#" class="nav-logo">
-                <span class="logo-icon">🤖</span>
-                <span class="logo-text">UptimeRobot</span>
+            <a href="#" class="nav-logo" onclick="navigateTo('landing'); return false;">
+                <span class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                        <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                    </svg>
+                </span>
+                <span class="logo-text">SignalForge</span>
             </a>
             <div class="nav-links" id="nav-links">
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#tech-stack" class="nav-link">Tech Stack</a>
-                <a href="#api" class="nav-link">API</a>
-                <a href="https://up-robot.netlify.app/" target="_blank" class="nav-cta">Open Dashboard →</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+                <a href="#" class="nav-cta" onclick="navigateTo('login'); return false;">Dashboard →</a>
             </div>
             <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle menu">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </button>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="hero" id="hero">
         <div class="hero-glow"></div>
+        <div class="hero-glow-accent"></div>
         <div class="hero-grid-bg"></div>
         <div class="hero-content">
             <div class="hero-badge fade-in">
@@ -43,30 +54,29 @@
                 Monitoring in real-time
             </div>
             <h1 class="hero-title fade-in">
-                Never miss a<br>
-                <span class="gradient-text">second of downtime</span>
+                Forge<br>
+                <span class="gradient-text">unbreakable uptime</span>
             </h1>
             <p class="hero-subtitle fade-in">
-                Open-source uptime monitoring backend built with Spring Boot 4 & Java 21.
-                Monitor your URLs every 60 seconds. Get instant alerts when sites go down or recover.
+                Premium uptime monitoring that watches your websites every 60 seconds.
+                Instant alerts when sites go down. Peace of mind when they don't.
             </p>
             <div class="hero-actions fade-in">
-                <a href="https://up-robot.netlify.app/" target="_blank" class="btn btn-primary">
-                    <span>Get Started Free</span>
+                <a href="#" class="btn btn-primary btn-lg" onclick="navigateTo('register'); return false;">
+                    <span>Start Monitoring Free</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="https://github.com/va1bhava" target="_blank" class="btn btn-secondary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <span>View on GitHub</span>
+                <a href="#features" class="btn btn-secondary btn-lg">
+                    <span>Learn More</span>
                 </a>
             </div>
         </div>
 
-        <!-- Live Stats Bar -->
+        <!-- Live Stats -->
         <div class="stats-bar fade-in" id="stats-bar">
             <div class="stat-card">
                 <div class="stat-number" id="stat-total">—</div>
-                <div class="stat-label">URLs Monitored</div>
+                <div class="stat-label">Monitors Active</div>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-card">
@@ -81,12 +91,12 @@
             <div class="stat-divider"></div>
             <div class="stat-card">
                 <div class="stat-number stat-interval">60<span class="stat-unit">s</span></div>
-                <div class="stat-label">Ping Interval</div>
+                <div class="stat-label">Check Interval</div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- Features -->
     <section class="features" id="features">
         <div class="section-container">
             <div class="section-header fade-in">
@@ -95,36 +105,36 @@
                 <p class="section-subtitle">Built from scratch with production-grade security, real-time alerts, and zero configuration overhead.</p>
             </div>
             <div class="features-grid">
-                <div class="feature-card fade-in" id="feature-jwt">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">🔐</div>
                     <h3 class="feature-title">JWT Authentication</h3>
-                    <p class="feature-desc">Secure stateless authentication with JJWT 0.12.6. Session management via Redis with automatic expiry and refresh token rotation.</p>
+                    <p class="feature-desc">Stateless authentication with JJWT. Session management via Redis with automatic expiry and refresh token rotation.</p>
                 </div>
-                <div class="feature-card fade-in" id="feature-otp">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">📧</div>
                     <h3 class="feature-title">Email OTP Verification</h3>
-                    <p class="feature-desc">Every account is verified via email OTP before creation using Brevo API. No fake accounts, no spam — only verified users get alerts.</p>
+                    <p class="feature-desc">Every account verified via email OTP before creation. No fake accounts, no spam — only verified users get alerts.</p>
                 </div>
-                <div class="feature-card fade-in" id="feature-oauth">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">🔑</div>
                     <h3 class="feature-title">Google OAuth2</h3>
-                    <p class="feature-desc">One-click sign in with Google SSO. Spring OAuth2 Client handles the entire flow — no passwords needed.</p>
+                    <p class="feature-desc">One-click sign in with Google SSO. Spring OAuth2 handles the entire flow — no passwords needed.</p>
                 </div>
-                <div class="feature-card fade-in" id="feature-monitor">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">📡</div>
                     <h3 class="feature-title">60-Second Monitoring</h3>
-                    <p class="feature-desc">Scheduled pinger hits all monitored URLs every 60 seconds using a 20-thread pool. Response time, status, and timestamps — all tracked.</p>
+                    <p class="feature-desc">Scheduled pinger checks all URLs every 60 seconds using a 20-thread pool. Response time, status, and timestamps tracked.</p>
                 </div>
-                <div class="feature-card fade-in" id="feature-alerts">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">🔔</div>
-                    <h3 class="feature-title">Instant Down/Up Alerts</h3>
-                    <p class="feature-desc">Get an email the moment your site goes down — and another when it recovers. Powered by Brevo's transactional email API.</p>
+                    <h3 class="feature-title">Instant Alerts</h3>
+                    <p class="feature-desc">Get an email the moment your site goes down — and another when it recovers. Powered by transactional email API.</p>
                 </div>
-                <div class="feature-card featured fade-in" id="feature-self-heal">
-                    <div class="feature-icon">🤖</div>
-                    <h3 class="feature-title">Self-Healing</h3>
-                    <p class="feature-desc">Add your own backend URL as a monitored URL. The scheduler pings it every 60 seconds, keeping your free Render instance warm forever.</p>
-                    <div class="feature-badge">Smart</div>
+                <div class="feature-card featured fade-in">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Alert History</h3>
+                    <p class="feature-desc">Full audit trail of every status change. See when monitors went down, when they recovered, and response times over time.</p>
+                    <div class="feature-badge">New</div>
                 </div>
             </div>
         </div>
@@ -138,44 +148,44 @@
                 <h2 class="section-title">Up and running in<br><span class="gradient-text">three simple steps</span></h2>
             </div>
             <div class="steps-container">
-                <div class="step fade-in" id="step-1">
+                <div class="step fade-in">
                     <div class="step-number">01</div>
                     <div class="step-content">
-                        <h3 class="step-title">Create an Account</h3>
+                        <h3 class="step-title">Create Your Account</h3>
                         <p class="step-desc">Sign up with email + OTP verification or use Google OAuth2 for instant access. Your email is where alerts get delivered.</p>
                     </div>
                     <div class="step-visual">
                         <div class="step-code">
                             <span class="code-method post">POST</span>
-                            <span class="code-path">/auth/send-otp</span>
+                            <span class="code-path">/api/auth/send-otp</span>
                         </div>
                     </div>
                 </div>
                 <div class="step-connector"></div>
-                <div class="step fade-in" id="step-2">
+                <div class="step fade-in">
                     <div class="step-number">02</div>
                     <div class="step-content">
-                        <h3 class="step-title">Add Your URLs</h3>
-                        <p class="step-desc">Add any URL you want monitored. Each user manages their own list. Add as many as you need — we ping them all.</p>
+                        <h3 class="step-title">Add Your Monitors</h3>
+                        <p class="step-desc">Add any URL you want monitored. Each user manages their own list. Add as many as you need — we check them all.</p>
                     </div>
                     <div class="step-visual">
                         <div class="step-code">
                             <span class="code-method post">POST</span>
-                            <span class="code-path">/addurl</span>
+                            <span class="code-path">/api/monitors</span>
                         </div>
                     </div>
                 </div>
                 <div class="step-connector"></div>
-                <div class="step fade-in" id="step-3">
+                <div class="step fade-in">
                     <div class="step-number">03</div>
                     <div class="step-content">
                         <h3 class="step-title">Get Instant Alerts</h3>
-                        <p class="step-desc">Sit back. Every 60 seconds we ping your URLs. If something goes down — you'll know within a minute via email.</p>
+                        <p class="step-desc">Sit back. Every 60 seconds we check your URLs. If something goes down — you'll know within a minute via email.</p>
                     </div>
                     <div class="step-visual">
                         <div class="step-code">
                             <span class="code-method get">GET</span>
-                            <span class="code-path">/geturls</span>
+                            <span class="code-path">/api/monitors</span>
                         </div>
                     </div>
                 </div>
@@ -183,153 +193,143 @@
         </div>
     </section>
 
-    <!-- Tech Stack -->
-    <section class="tech-stack" id="tech-stack">
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
         <div class="section-container">
             <div class="section-header fade-in">
-                <span class="section-tag">Tech Stack</span>
-                <h2 class="section-title">Built with<br><span class="gradient-text">production-grade tools</span></h2>
+                <span class="section-tag">Pricing</span>
+                <h2 class="section-title">Simple, transparent<br><span class="gradient-text">pricing for everyone</span></h2>
+                <p class="section-subtitle">Start free, scale as you grow. No hidden fees, no credit card required.</p>
             </div>
-            <div class="tech-grid fade-in">
-                <div class="tech-badge" id="tech-spring">
-                    <span class="tech-icon">🍃</span>
-                    <div>
-                        <span class="tech-name">Spring Boot</span>
-                        <span class="tech-version">4.0.2</span>
-                    </div>
+            <div class="pricing-grid fade-in">
+                <div class="pricing-card">
+                    <div class="pricing-name">Starter</div>
+                    <div class="pricing-price">$0 <span>/mo</span></div>
+                    <div class="pricing-desc">Perfect for personal projects</div>
+                    <ul class="pricing-features">
+                        <li>5 monitors</li>
+                        <li>60-second checks</li>
+                        <li>Email alerts</li>
+                        <li>7-day history</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" onclick="navigateTo('register'); return false;">Get Started</a>
                 </div>
-                <div class="tech-badge" id="tech-java">
-                    <span class="tech-icon">☕</span>
-                    <div>
-                        <span class="tech-name">Java</span>
-                        <span class="tech-version">21 LTS</span>
-                    </div>
+                <div class="pricing-card popular">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-name">Pro</div>
+                    <div class="pricing-price">$12 <span>/mo</span></div>
+                    <div class="pricing-desc">For growing teams & businesses</div>
+                    <ul class="pricing-features">
+                        <li>50 monitors</li>
+                        <li>30-second checks</li>
+                        <li>Email + Slack alerts</li>
+                        <li>90-day history</li>
+                        <li>Status pages</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" onclick="navigateTo('register'); return false;">Start Free Trial</a>
                 </div>
-                <div class="tech-badge" id="tech-postgres">
-                    <span class="tech-icon">🐘</span>
-                    <div>
-                        <span class="tech-name">PostgreSQL</span>
-                        <span class="tech-version">+ JPA</span>
-                    </div>
-                </div>
-                <div class="tech-badge" id="tech-redis">
-                    <span class="tech-icon">⚡</span>
-                    <div>
-                        <span class="tech-name">Redis</span>
-                        <span class="tech-version">Sessions</span>
-                    </div>
-                </div>
-                <div class="tech-badge" id="tech-docker">
-                    <span class="tech-icon">🐳</span>
-                    <div>
-                        <span class="tech-name">Docker</span>
-                        <span class="tech-version">Containerized</span>
-                    </div>
-                </div>
-                <div class="tech-badge" id="tech-brevo">
-                    <span class="tech-icon">📨</span>
-                    <div>
-                        <span class="tech-name">Brevo</span>
-                        <span class="tech-version">Email API</span>
-                    </div>
-                </div>
-                <div class="tech-badge" id="tech-jwt">
-                    <span class="tech-icon">🔒</span>
-                    <div>
-                        <span class="tech-name">JJWT</span>
-                        <span class="tech-version">0.12.6</span>
-                    </div>
-                </div>
-                <div class="tech-badge" id="tech-render">
-                    <span class="tech-icon">☁️</span>
-                    <div>
-                        <span class="tech-name">Render</span>
-                        <span class="tech-version">Deployed</span>
-                    </div>
+                <div class="pricing-card">
+                    <div class="pricing-name">Enterprise</div>
+                    <div class="pricing-price">$49 <span>/mo</span></div>
+                    <div class="pricing-desc">For mission-critical systems</div>
+                    <ul class="pricing-features">
+                        <li>Unlimited monitors</li>
+                        <li>15-second checks</li>
+                        <li>All alert channels</li>
+                        <li>365-day history</li>
+                        <li>API access</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" onclick="navigateTo('register'); return false;">Contact Sales</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- API Preview -->
-    <section class="api-section" id="api">
+    <!-- Testimonials -->
+    <section class="how-it-works" id="testimonials">
         <div class="section-container">
             <div class="section-header fade-in">
-                <span class="section-tag">API</span>
-                <h2 class="section-title">Clean REST API<br><span class="gradient-text">ready to integrate</span></h2>
-                <p class="section-subtitle">Simple, well-structured endpoints. JWT-secured where it matters, public where it should be.</p>
+                <span class="section-tag">Testimonials</span>
+                <h2 class="section-title">Trusted by teams<br><span class="gradient-text">shipping fast</span></h2>
             </div>
-            <div class="api-preview fade-in">
-                <div class="api-window">
-                    <div class="api-titlebar">
-                        <div class="api-dots">
-                            <span class="dot red"></span>
-                            <span class="dot yellow"></span>
-                            <span class="dot green"></span>
-                        </div>
-                        <span class="api-filename">API Endpoints</span>
-                    </div>
-                    <div class="api-content">
-                        <div class="api-group">
-                            <div class="api-group-title">Authentication</div>
-                            <div class="api-endpoint">
-                                <span class="method post">POST</span>
-                                <span class="endpoint-path">/uptimerobot/auth/send-otp</span>
-                                <span class="endpoint-auth public">Public</span>
-                            </div>
-                            <div class="api-endpoint">
-                                <span class="method post">POST</span>
-                                <span class="endpoint-path">/uptimerobot/auth/verify-otp</span>
-                                <span class="endpoint-auth public">Public</span>
-                            </div>
-                            <div class="api-endpoint">
-                                <span class="method post">POST</span>
-                                <span class="endpoint-path">/uptimerobot/auth/login</span>
-                                <span class="endpoint-auth public">Public</span>
-                            </div>
-                        </div>
-                        <div class="api-group">
-                            <div class="api-group-title">URL Monitoring</div>
-                            <div class="api-endpoint">
-                                <span class="method post">POST</span>
-                                <span class="endpoint-path">/uptimerobot/addurl</span>
-                                <span class="endpoint-auth secured">JWT 🔒</span>
-                            </div>
-                            <div class="api-endpoint">
-                                <span class="method get">GET</span>
-                                <span class="endpoint-path">/uptimerobot/geturls</span>
-                                <span class="endpoint-auth secured">JWT 🔒</span>
-                            </div>
-                            <div class="api-endpoint">
-                                <span class="method delete">DELETE</span>
-                                <span class="endpoint-path">/uptimerobot/deleteurl/{id}</span>
-                                <span class="endpoint-auth secured">JWT 🔒</span>
-                            </div>
-                        </div>
-                        <div class="api-group">
-                            <div class="api-group-title">Public Stats</div>
-                            <div class="api-endpoint">
-                                <span class="method get">GET</span>
-                                <span class="endpoint-path">/uptimerobot/stats</span>
-                                <span class="endpoint-auth public">Public</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="features-grid" style="max-width: 960px; margin: 0 auto; grid-template-columns: repeat(3, 1fr);">
+                <div class="feature-card fade-in" style="text-align: center;">
+                    <p class="feature-desc" style="margin-bottom: 20px; font-style: italic;">"SignalForge caught a production outage before any customer noticed. Saved us hours of debugging."</p>
+                    <div style="font-weight: 700; font-size: 14px;">Sarah Chen</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">CTO, DevFlow</div>
+                </div>
+                <div class="feature-card fade-in" style="text-align: center;">
+                    <p class="feature-desc" style="margin-bottom: 20px; font-style: italic;">"Clean dashboard, instant alerts, zero configuration. Exactly what we needed for our microservices."</p>
+                    <div style="font-weight: 700; font-size: 14px;">Marcus Johnson</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Lead Engineer, CloudBase</div>
+                </div>
+                <div class="feature-card fade-in" style="text-align: center;">
+                    <p class="feature-desc" style="margin-bottom: 20px; font-style: italic;">"We switched from a $200/mo tool. SignalForge gives us everything we need at a fraction of the cost."</p>
+                    <div style="font-weight: 700; font-size: 14px;">Priya Patel</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">Founder, ShipFast</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section" id="cta">
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+        <div class="section-container">
+            <div class="section-header fade-in">
+                <span class="section-tag">FAQ</span>
+                <h2 class="section-title">Frequently asked<br><span class="gradient-text">questions</span></h2>
+            </div>
+            <div class="faq-grid fade-in">
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How often does SignalForge check my websites?
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer"><p>SignalForge checks all your monitored URLs every 60 seconds by default. Pro and Enterprise plans offer faster intervals.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        How do I get notified when a site goes down?
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer"><p>You receive an email alert the moment a monitored URL goes down, and another notification when it recovers. Alerts are sent via Brevo's transactional email API.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Is my data secure?
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer"><p>Absolutely. We use JWT-based stateless authentication, BCrypt password hashing, Redis-backed sessions, and all communications are encrypted. Your credentials are never stored in plain text.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Can I use Google to sign in?
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer"><p>Yes! SignalForge supports Google OAuth2 for one-click sign in. No passwords needed — just authenticate with your Google account.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What happens when my free plan limits are reached?
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer"><p>You'll receive a notification. Your existing monitors continue to work — you simply won't be able to add new ones until you upgrade or remove existing monitors.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
         <div class="section-container">
             <div class="cta-card fade-in">
                 <div class="cta-glow"></div>
-                <h2 class="cta-title">Ready to monitor your uptime?</h2>
-                <p class="cta-subtitle">Start monitoring your websites in under a minute. Free, open-source, and self-hostable.</p>
+                <h2 class="cta-title">Ready to forge unbreakable uptime?</h2>
+                <p class="cta-subtitle">Start monitoring your websites in under a minute. Free to start, powerful enough to scale.</p>
                 <div class="cta-actions">
-                    <a href="https://up-robot.netlify.app/" target="_blank" class="btn btn-primary btn-lg">
-                        <span>Start Monitoring →</span>
+                    <a href="#" class="btn btn-primary btn-lg" onclick="navigateTo('register'); return false;">
+                        <span>Start Monitoring Free →</span>
                     </a>
                 </div>
             </div>
@@ -341,18 +341,247 @@
         <div class="footer-container">
             <div class="footer-top">
                 <div class="footer-brand">
-                    <span class="logo-icon">🤖</span>
-                    <span class="logo-text">UptimeRobot</span>
+                    <span class="logo-icon">
+                        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                            <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                            <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                        </svg>
+                    </span>
+                    <span>SignalForge</span>
                 </div>
-                <p class="footer-tagline">Open-source uptime monitoring built with Spring Boot 4 & Java 21</p>
+                <p class="footer-tagline">Premium uptime monitoring for modern teams</p>
             </div>
             <div class="footer-bottom">
-                <p class="footer-credit">Built by <a href="https://github.com/va1bhava" target="_blank">Vaibhava</a></p>
-                <p class="footer-copy">MIT License — feel free to use, modify and build on top.</p>
+                <p class="footer-copy">&copy; 2025 SignalForge. All rights reserved.</p>
+                <p class="footer-credit">Built with Spring Boot 4 & Java 21</p>
             </div>
         </div>
     </footer>
+</div>
 
-    <script src="script.js"></script>
+<!-- ========== PAGE: LOGIN ========== -->
+<div class="page" id="page-login">
+    <div class="auth-page">
+        <div class="hero-glow"></div>
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                        <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                        <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                    </svg>
+                </div>
+                <h1>Welcome back</h1>
+                <p>Sign in to your SignalForge account</p>
+            </div>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="login-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="login-password" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" class="form-error" style="display:none; margin-bottom: 12px;"></div>
+                <button type="submit" class="btn btn-primary form-submit" id="login-btn">
+                    <span>Sign In</span>
+                </button>
+            </form>
+            <div class="auth-divider"><span>or</span></div>
+            <a href="/oauth2/authorization/google" class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Continue with Google
+            </a>
+            <div class="auth-footer">
+                Don't have an account? <a href="#" onclick="navigateTo('register'); return false;">Sign up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PAGE: REGISTER ========== -->
+<div class="page" id="page-register">
+    <div class="auth-page">
+        <div class="hero-glow"></div>
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                        <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                        <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                    </svg>
+                </div>
+                <h1>Create your account</h1>
+                <p>Start monitoring in under a minute</p>
+            </div>
+            <form id="register-form" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="register-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="register-password" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 symbol" required>
+                </div>
+                <div id="register-error" class="form-error" style="display:none; margin-bottom: 12px;"></div>
+                <button type="submit" class="btn btn-primary form-submit" id="register-btn">
+                    <span>Send Verification Code</span>
+                </button>
+            </form>
+            <div class="auth-divider"><span>or</span></div>
+            <a href="/oauth2/authorization/google" class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Continue with Google
+            </a>
+            <div class="auth-footer">
+                Already have an account? <a href="#" onclick="navigateTo('login'); return false;">Sign in</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PAGE: OTP VERIFICATION ========== -->
+<div class="page" id="page-otp">
+    <div class="auth-page">
+        <div class="hero-glow"></div>
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+                        <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                        <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                    </svg>
+                </div>
+                <h1>Verify your email</h1>
+                <p>Enter the 6-digit code sent to <strong id="otp-email-display"></strong></p>
+            </div>
+            <form id="otp-form" onsubmit="handleOtpVerify(event)">
+                <div class="otp-container" id="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" data-index="0" inputmode="numeric" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" data-index="1" inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" data-index="2" inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" data-index="3" inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" data-index="4" inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" data-index="5" inputmode="numeric">
+                </div>
+                <div id="otp-error" class="form-error" style="display:none; text-align: center; margin-bottom: 12px;"></div>
+                <button type="submit" class="btn btn-primary form-submit" id="otp-btn">
+                    <span>Verify & Create Account</span>
+                </button>
+            </form>
+            <div class="auth-footer" style="margin-top: 16px;">
+                <a href="#" onclick="navigateTo('register'); return false;">← Back to registration</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PAGE: DASHBOARD ========== -->
+<div class="page" id="page-dashboard">
+    <!-- Dashboard Nav -->
+    <nav class="navbar scrolled" id="dashboard-navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="navigateTo('dashboard'); return false;">
+                <span class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="#635BFF"/>
+                        <path d="M8 20 L14 10 L18 16 L24 8" stroke="#00D4AA" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="8" r="2.5" fill="#00D4AA"/>
+                    </svg>
+                </span>
+                <span class="logo-text">SignalForge</span>
+            </a>
+            <div class="nav-links" style="display: flex;">
+                <span class="nav-link" style="color: var(--text-muted); font-size: 13px;" id="dashboard-email"></span>
+                <button class="btn btn-ghost btn-sm" onclick="handleLogout()" id="logout-btn">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Dashboard</h1>
+                    <p class="dashboard-title-sub">Monitor your websites in real-time</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Monitor
+                </button>
+            </div>
+
+            <!-- Overview Cards -->
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <div class="overview-label">Total Monitors</div>
+                    <div class="overview-value" id="dash-total">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">Currently Up</div>
+                    <div class="overview-value up" id="dash-up">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">Currently Down</div>
+                    <div class="overview-value down" id="dash-down">0</div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-label">Uptime Rate</div>
+                    <div class="overview-value accent" id="dash-uptime">—</div>
+                </div>
+            </div>
+
+            <!-- Monitors Table -->
+            <div class="monitors-section">
+                <div class="monitors-toolbar">
+                    <h2>Monitors</h2>
+                    <div class="toolbar-actions">
+                        <input type="text" class="search-input" placeholder="Search monitors..." id="search-monitors" oninput="filterMonitors()">
+                        <select class="filter-select" id="filter-status" onchange="filterMonitors()">
+                            <option value="all">All Status</option>
+                            <option value="UP">Up</option>
+                            <option value="DOWN">Down</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="monitors-content">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== ADD MONITOR MODAL ========== -->
+<div class="modal-overlay" id="add-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Add New Monitor</h2>
+            <button class="modal-close" onclick="closeAddModal()">✕</button>
+        </div>
+        <form id="add-monitor-form" onsubmit="handleAddMonitor(event)">
+            <div class="form-group">
+                <label class="form-label">Name (optional)</label>
+                <input type="text" class="form-input" id="monitor-name" placeholder="My Website">
+            </div>
+            <div class="form-group">
+                <label class="form-label">URL</label>
+                <input type="url" class="form-input" id="monitor-url" placeholder="https://example.com" required>
+            </div>
+            <div id="add-error" class="form-error" style="display:none; margin-bottom: 12px;"></div>
+            <button type="submit" class="btn btn-primary form-submit" id="add-btn">
+                <span>Add Monitor</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

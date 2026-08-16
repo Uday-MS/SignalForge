@@ -1,197 +1,191 @@
-﻿# 🤖 Uptime Monitor — Spring Boot MVP
+# SignalForge
 
-A full-stack uptime monitoring backend built from scratch. Monitors your URLs every minute, alerts you when they go down, and **monitors itself** to stay alive on free hosting.
+**Premium Uptime Monitoring SaaS** — Monitor your websites every 60 seconds. Get instant alerts when sites go down or recover.
 
-> Live Demo: (https://up-robot.netlify.app/)
+Built with **Spring Boot 4** · **Java 21** · **PostgreSQL** · **Redis** · **JWT + OAuth2**
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔐 **JWT Authentication** — Secure stateless auth with JJWT 0.12.6
-- 📧 **Email OTP Registration** — Verify email before account creation via Brevo API
+- 🔐 **JWT Authentication** — Stateless auth with Redis session management and refresh token rotation
+- 📧 **Email OTP Verification** — Every account verified via 6-digit OTP before creation
 - 🔑 **Google OAuth2** — One-click sign in with Google SSO
-- 📡 **URL Monitoring** — Pings all your monitored URLs every 60 seconds automatically
-- 🔔 **Down/Up Alerts** — Email notification when a site goes down or recovers
-- 👤 **Per-user URL management** — Each user manages their own list of URLs
-- 🐘 **PostgreSQL** — Full data persistence with Spring Data JPA
-- ☁️ **Dockerized** — Ready to deploy anywhere
-- 🤖 **Self-monitoring** — Add your own backend URL to keep Render free tier alive
+- 📡 **60-Second Monitoring** — 20-thread scheduler pings all monitored URLs every minute
+- 🔔 **Instant Alerts** — Email notifications on down/recovery events via Brevo API
+- ⚡ **Alert History** — Full audit trail of all status change events
+- 📊 **Modern Dashboard** — Real-time stats, search, filter, and responsive tables
+- 🎨 **Premium Dark UI** — Glassmorphism design inspired by Linear, Stripe, and Vercel
 
 ---
 
-## 🏗️ Architecture
-
-```
-Client (React / Browser)
-        │
-        ▼ HTTPS / REST
-┌─────────────────────────────┐
-│        Spring Boot App       │
-│                             │
-│  ┌──────────┐ ┌──────────┐  │
-│  │   Auth   │ │   URL    │  │
-│  │Controller│ │Controller│  │
-│  └────┬─────┘ └────┬─────┘  │
-│       │            │        │
-│  ┌────▼─────────────▼─────┐ │
-│  │     Service Layer       │ │
-│  │  OtpService             │ │
-│  │  UserService            │ │
-│  │  MonitoredUrlService    │ │
-│  │  PingService            │ │
-│  └────┬─────────────┬─────┘ │
-│       │             │       │
-│  ┌────▼────┐  ┌─────▼────┐  │
-│  │ Postgres │  │  Brevo   │  │
-│  │   JPA   │  │ Email API │  │
-│  └─────────┘  └──────────┘  │
-│                             │
-│  ┌──────────────────────┐   │
-│  │  @Scheduled Pinger   │   │
-│  │  every 60 seconds    │   │
-│  └──────────────────────┘   │
-└─────────────────────────────┘
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Spring Boot 4.0.2 |
-| Language | Java 21 |
-| Security | Spring Security + JWT (JJWT 0.12.6) |
-| OAuth2 | Spring OAuth2 Client (Google) |
-| Database | PostgreSQL + Spring Data JPA |
-| HTTP Client | Apache HttpClient5 |
-| Email | Brevo Transactional Email API |
-| Validation | Spring Boot Starter Validation |
-| Deployment | Docker + Render |
-
----
-
-## 📡 API Endpoints
-
-### Auth — `/uptimerobot/auth`
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| POST | `/send-otp` | Register — sends OTP to email | ❌ |
-| POST | `/verify-otp` | Verify OTP and create account | ❌ |
-| POST | `/login` | Login with email + password | ❌ |
-
-### URLs — `/uptimerobot`
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| POST | `/addurl` | Add a URL to monitor | ✅ JWT |
-| GET | `/geturls` | Get all your monitored URLs | ✅ JWT |
-| DELETE | `/deleteurl/{urlId}` | Delete a monitored URL | ✅ JWT |
-
-### OAuth2
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/oauth2/authorization/google` | Initiate Google OAuth2 login |
-
----
-
-## ⚙️ Environment Variables
-
-Set these in your deployment environment (Render, Docker, etc.):
-
-```env
-# Database
-SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:<port>/<dbname>
-SPRING_DATASOURCE_USERNAME=your_db_user
-SPRING_DATASOURCE_PASSWORD=your_db_password
-
-# JWT
-JWT_SECRET=your_jwt_secret_key
-
-# Brevo Email API
-BREVO_API_KEY=your_brevo_api_key
-
-# Google OAuth2
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
-
----
-
-## 🚀 Running Locally
+## Quick Start
 
 ### Prerequisites
-- Java 21
-- Maven
-- PostgreSQL running locally
 
-### Steps
+- Java 21+
+- PostgreSQL 14+
+- Redis 7+
+- Brevo (Sendinblue) API key
+- Google OAuth2 credentials (optional)
 
-```bash
-# Clone the repo
-git clone https://github.com/yourusername/uptime-monitor.git
-cd uptime-monitor
-
-# Set environment variables (or add to application.yml)
-export BREVO_API_KEY=your_key
-export JWT_SECRET=your_secret
-# ... other vars
-
-# Run
-./mvnw spring-boot:run
-```
-
-App starts on `http://localhost:1111`
-
----
-
-## 🐳 Docker
+### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Build
-docker build -t uptime-monitor .
+# Clone and enter the directory
+cd signalforge
 
-# Run
-docker run -p 1111:1111 \
-  -e BREVO_API_KEY=your_key \
-  -e SPRING_DATASOURCE_URL=your_db_url \
-  uptime-monitor
+# Copy environment template
+cp .env.example .env
+# Edit .env with your API keys
+
+# Start everything
+docker-compose up -d
+```
+
+The app will be available at **http://localhost:1111**
+
+### Option 2: Manual Setup
+
+```bash
+# 1. Create PostgreSQL database
+createdb signalforge
+
+# 2. Set environment variables (see .env.example)
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/signalforge
+export SPRING_DATASOURCE_USERNAME=your_user
+export SPRING_DATASOURCE_PASSWORD=your_password
+export SPRING_DATA_REDIS_HOST=localhost
+export SPRING_DATA_REDIS_PORT=6379
+export JWT_SECRET=your-secret-key-minimum-32-chars
+export BREVO_API_KEY=your_brevo_key
+export COOKIE_SECURE=false
+export FRONTEND_URL=http://localhost:1111
+
+# 3. Build and run
+./mvnw clean package -DskipTests
+java -jar target/signalforge-1.0.0.jar
 ```
 
 ---
 
-## 🧠 Key Design Decisions
+## Project Structure
 
-**Why Brevo instead of JavaMailSender?**
-Render free tier blocks outbound SMTP ports (465, 587). Brevo's HTTP API bypasses this completely. Free tier gives 300 emails/day — more than enough for an uptime monitor.
+```
+src/main/java/com/signalforge/
+├── SignalForgeApplication.java      # Main entry point
+├── configuration/
+│   ├── AppConfig.java               # RestTemplate config
+│   ├── RedisConfig.java             # Redis template
+│   └── WebConfig.java               # Security filter chain, CORS
+├── controller/
+│   ├── AuthController.java          # Login, register, OTP, logout, refresh
+│   ├── MonitorController.java       # CRUD for monitors
+│   ├── OAuthController.java         # Google OAuth2 callback
+│   └── StatsController.java         # Public stats endpoint
+├── dto/
+│   ├── LoginRequest.java
+│   ├── OtpRequest.java
+│   ├── PingResult.java
+│   ├── RegisterRequest.java
+│   └── StatsResponse.java
+├── entity/
+│   ├── AlertHistory.java            # Down/recovery event log
+│   ├── MonitoredUrl.java            # URL monitor entity
+│   └── User.java
+├── jwt/
+│   ├── JwtFilter.java               # Auth filter
+│   └── JwtUtil.java                 # Token generation/validation
+├── repository/
+│   ├── AlertHistoryRepository.java
+│   ├── MonitorRepository.java
+│   └── UserRepository.java
+├── scheduler/
+│   └── MonitorScheduler.java        # 60-second ping scheduler
+├── services/
+│   ├── AlertService.java            # Email alerts for status changes
+│   ├── MonitorService.java          # Monitor CRUD business logic
+│   ├── MonitoredUrlService.java     # Ping orchestration
+│   ├── OtpService.java              # OTP generation/verification
+│   ├── PingService.java             # HTTP health check
+│   ├── SessionService.java          # Redis session management
+│   └── UserDetailsImpl.java         # Spring Security user loader
+└── util/
+    └── CookieUtil.java              # Shared cookie builder
 
-**Why OTP before registration?**
-Prevents fake accounts and ensures every user has a verified email — important since alerts are sent to that email.
-
-**Self-monitoring trick**
-Add your own deployed URL (`https://your-app.onrender.com`) as a monitored URL inside the app. The scheduler pings it every 60 seconds, keeping Render's free instance warm and preventing spin-down.
+src/main/resources/
+├── application.properties           # Configuration
+├── application.yml                  # OAuth2 config
+├── db/migration/
+│   └── V1__init_schema.sql          # Flyway migration
+└── static/
+    ├── index.html                   # SPA frontend
+    ├── style.css                    # Design system
+    └── script.js                    # App logic
+```
 
 ---
 
-## 🗺️ Roadmap
+## API Endpoints
 
-- [ ] Redis for OTP store (currently in-memory — resets on redeploy)
-- [ ] WebSockets for real-time ping status
-- [ ] Response time tracking + uptime % graphs
-- [ ] Per-URL custom ping intervals
-- [ ] Rate limiting with Bucket4j
-- [ ] Refresh token rotation
-- [ ] Alert history log
+### Authentication (Public)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/send-otp` | Send OTP to email |
+| POST | `/api/auth/verify-otp` | Verify OTP & create account |
+| POST | `/api/auth/login` | Login with email/password |
+| POST | `/api/auth/logout` | Logout & invalidate session |
+| POST | `/api/auth/refresh` | Refresh access token |
+
+### Monitors (JWT Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/monitors` | List user's monitors |
+| POST | `/api/monitors` | Add new monitor |
+| DELETE | `/api/monitors/{id}` | Delete a monitor |
+
+### Public
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/stats` | Platform statistics |
 
 ---
 
-## 📄 License
+## Environment Variables
 
-MIT License — feel free to use, modify and build on top of this.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SPRING_DATASOURCE_URL` | ✅ | PostgreSQL JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | ✅ | Database username |
+| `SPRING_DATASOURCE_PASSWORD` | ✅ | Database password |
+| `SPRING_DATA_REDIS_HOST` | ✅ | Redis host |
+| `SPRING_DATA_REDIS_PORT` | ✅ | Redis port |
+| `JWT_SECRET` | ✅ | JWT signing key (min 32 chars) |
+| `BREVO_API_KEY` | ✅ | Brevo email API key |
+| `SENDER_EMAIL` | ❌ | Sender email (default: signalforge@gmail.com) |
+| `GOOGLE_CLIENT_ID` | ❌ | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | ❌ | Google OAuth2 secret |
+| `FRONTEND_URL` | ❌ | Frontend URL for redirects |
+| `COOKIE_SECURE` | ❌ | Set true for HTTPS |
+| `PORT` | ❌ | Server port (default: 1111) |
 
 ---
 
-Built by [Vaibhava](https://github.com/va1bhava) · Spring Boot 4 · Java 21
+## Tech Stack
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| Spring Boot | 4.0.2 | Backend framework |
+| Java | 21 LTS | Language |
+| PostgreSQL | 16 | Primary database |
+| Redis | 7 | Session & refresh token store |
+| Flyway | — | Database migrations |
+| JJWT | 0.12.6 | JWT authentication |
+| Brevo | 7.0.0 | Transactional email |
+| Docker | — | Containerization |
+
+---
+
+## License
+
+MIT License — feel free to use, modify, and build on top.
