@@ -16,6 +16,7 @@ import org.springframework.http.ResponseCookie;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,7 +26,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 @RestController
@@ -34,17 +35,19 @@ public class AuthController {
 
     private static final Logger logger = Logger.getLogger(AuthController.class.getName());
 
+    private static final String PENDING_PREFIX = "pending_reg:";
+    private static final long PENDING_TTL_SECONDS = 300; // 5 minutes
+
     @Autowired private JwtUtil jwtUtil;
     @Autowired private UserRepository userRepository;
     @Autowired private AuthenticationManager authenticationManager;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private OtpService otpService;
     @Autowired private SessionService sessionService;
+    @Autowired private RedisTemplate<String, String> redisTemplate;
 
     @Value("${COOKIE_SECURE}")
     private boolean secureCookie;
-
-    private final Map<String, String> pendingRequests = new ConcurrentHashMap<>();
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@Valid @RequestBody RegisterRequest request, BindingResult result) {
@@ -52,40 +55,67 @@ public class AuthController {
             String errorMessage = result.getAllErrors().get(0).getDefaultMessage();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", errorMessage));
         }
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+
+        String email = request.getEmail().toLowerCase().trim();
+
+        if (userRepository.findByEmail(email).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "Email already registered"));
         }
-        pendingRequests.put(request.getEmail(), request.getPassword());
+
+        // Store hashed password in Redis (not raw) with TTL
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+        redisTemplate.opsForValue().set(PENDING_PREFIX + email, hashedPassword,
+                PENDING_TTL_SECONDS, TimeUnit.SECONDS);
 
         try {
-            otpService.sendOtp(request.getEmail());
+            boolean sent = otpService.sendOtp(email);
+            if (!sent) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(Map.of("error", "Please wait 60 seconds before requesting another code"));
+            }
         } catch (Exception e) {
             logger.severe("OTP send failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Could not send OTP: " + e.getMessage()));
+                    .body(Map.of("error", "Could not send verification email. Please try again."));
         }
-        return ResponseEntity.ok().body(Map.of("message", "OTP sent to " + request.getEmail()));
+        return ResponseEntity.ok().body(Map.of("message", "OTP sent to " + email));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody OtpRequest otpRequest, HttpServletResponse response) {
-        boolean valid = otpService.verifyOtp(otpRequest.getEmail(), otpRequest.getOtp());
+        String email = otpRequest.getEmail().toLowerCase().trim();
+
+        boolean valid = otpService.verifyOtp(email, otpRequest.getOtp());
         if (!valid) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired OTP"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired verification code"));
         }
-        String rawPassword = pendingRequests.remove(otpRequest.getEmail());
+
+        // Retrieve hashed password from Redis
+        String hashedPassword = redisTemplate.opsForValue().get(PENDING_PREFIX + email);
+        if (hashedPassword == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Registration expired. Please start over."));
+        }
+        redisTemplate.delete(PENDING_PREFIX + email);
+
+        // Check again for duplicate (race condition guard)
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Email already registered"));
+        }
+
         User user = new User();
-        user.setEmail(otpRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setEmail(email);
+        user.setPassword(hashedPassword); // Already hashed
         userRepository.save(user);
 
         String sessionId = jwtUtil.generateSessionId();
-        String token = jwtUtil.generateToken(otpRequest.getEmail(), sessionId);
+        String token = jwtUtil.generateToken(email, sessionId);
         sessionService.createSession(sessionId, String.valueOf(user.getId()));
 
         String refreshToken = jwtUtil.generateRefreshToken();
-        sessionService.storeRefreshToken(refreshToken, String.valueOf(user.getId()), otpRequest.getEmail());
+        sessionService.storeRefreshToken(refreshToken, String.valueOf(user.getId()), email);
 
         ResponseCookie cookie = CookieUtil.buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60, secureCookie);
         response.addHeader("Set-Cookie", cookie.toString());
@@ -94,16 +124,24 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        String email = request.getEmail().toLowerCase().trim();
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid email or password"));
+        }
+
+        User user = userRepository.findByEmail(email).orElseThrow();
 
         String sessionId = jwtUtil.generateSessionId();
-        String token = jwtUtil.generateToken(request.getEmail(), sessionId);
+        String token = jwtUtil.generateToken(email, sessionId);
         sessionService.createSession(sessionId, String.valueOf(user.getId()));
 
         String refreshToken = jwtUtil.generateRefreshToken();
-        sessionService.storeRefreshToken(refreshToken, String.valueOf(user.getId()), request.getEmail());
+        sessionService.storeRefreshToken(refreshToken, String.valueOf(user.getId()), email);
 
         ResponseCookie cookie = CookieUtil.buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60, secureCookie);
         response.addHeader("Set-Cookie", cookie.toString());
@@ -178,6 +216,6 @@ public class AuthController {
         String newSessionId = jwtUtil.generateSessionId();
         String newAccessToken = jwtUtil.generateToken(email, newSessionId);
         sessionService.createSession(newSessionId, userId);
-        return ResponseEntity.ok(Map.of("token", newAccessToken));
+        return ResponseEntity.ok(Map.of("token", newAccessToken, "email", email));
     }
 }

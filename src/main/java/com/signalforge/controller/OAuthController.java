@@ -35,7 +35,7 @@ public class OAuthController {
     @GetMapping("/oauth-success")
     public Object success(OAuth2AuthenticationToken oAuth2AuthenticationToken, HttpServletResponse response) {
         Map<String, Object> attributes = oAuth2AuthenticationToken.getPrincipal().getAttributes();
-        String email = attributes.get("email").toString();
+        String email = attributes.get("email").toString().toLowerCase().trim();
         Optional<User> existingUser = userRepository.findByEmail(email);
 
         User user;
@@ -44,7 +44,7 @@ public class OAuthController {
         } else {
             user = new User();
             user.setEmail(email);
-            user.setPassword("");
+            user.setPassword(null); // OAuth users have no password
             userRepository.save(user);
         }
 
@@ -57,6 +57,6 @@ public class OAuthController {
 
         ResponseCookie cookie = CookieUtil.buildRefreshCookie(refreshToken, 7L * 24 * 60 * 60, secureCookie);
         response.addHeader("Set-Cookie", cookie.toString());
-        return new RedirectView(frontendUrl + "/index.html?token=" + token + "&email=" + email);
+        return new RedirectView(frontendUrl + "/index.html?oauth=success");
     }
 }

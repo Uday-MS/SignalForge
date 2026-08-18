@@ -7,17 +7,20 @@ import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailSender;
 import sibModel.SendSmtpEmailTo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 @Service
 public class OtpService {
+
+    private static final Logger logger = Logger.getLogger(OtpService.class.getName());
 
     @Value("${BREVO_API_KEY}")
     private String brevoApiKey;
@@ -25,16 +28,63 @@ public class OtpService {
     @Value("${SENDER_EMAIL:signalforge@gmail.com}")
     private String senderEmail;
 
-    record OtpEntry(String otp, Instant expiresAt) {}
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
-    Map<String, OtpEntry> otpStore = new ConcurrentHashMap<>();
+    private static final SecureRandom secureRandom = new SecureRandom();
+    private static final String OTP_PREFIX = "otp:";
+    private static final String OTP_COOLDOWN_PREFIX = "otp_cooldown:";
+    private static final long OTP_TTL_SECONDS = 180;       // 3 minutes
+    private static final long COOLDOWN_SECONDS = 60;        // 1 minute between resends
 
-    public void sendOtp(String email) throws Exception {
-        String otp = String.format("%06d", new Random().nextInt(999999));
+    /**
+     * Generate a cryptographically secure 6-digit OTP, store in Redis with TTL,
+     * and send to the user's email via Brevo.
+     *
+     * @return true if sent, false if rate-limited
+     */
+    public boolean sendOtp(String email) throws Exception {
+        String normalizedEmail = email.toLowerCase().trim();
 
-        Instant expiresAt = Instant.now().plusSeconds(180);
-        otpStore.put(email, new OtpEntry(otp, expiresAt));
+        // Rate limiting: check cooldown
+        String cooldownKey = OTP_COOLDOWN_PREFIX + normalizedEmail;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey))) {
+            return false; // Rate limited
+        }
 
+        // Generate cryptographically secure 6-digit OTP
+        String otp = String.format("%06d", secureRandom.nextInt(1_000_000));
+
+        // Store in Redis (overwrites any previous OTP for this email)
+        String otpKey = OTP_PREFIX + normalizedEmail;
+        redisTemplate.opsForValue().set(otpKey, otp, OTP_TTL_SECONDS, TimeUnit.SECONDS);
+
+        // Set cooldown
+        redisTemplate.opsForValue().set(cooldownKey, "1", COOLDOWN_SECONDS, TimeUnit.SECONDS);
+
+        // Send email via Brevo
+        sendOtpEmail(normalizedEmail, otp);
+
+        return true;
+    }
+
+    /**
+     * Verify OTP. Single-use: removed from Redis after successful verification.
+     */
+    public boolean verifyOtp(String email, String otp) {
+        String normalizedEmail = email.toLowerCase().trim();
+        String otpKey = OTP_PREFIX + normalizedEmail;
+
+        String storedOtp = redisTemplate.opsForValue().get(otpKey);
+        if (storedOtp == null) return false;                // Expired or never sent
+        if (!storedOtp.equals(otp)) return false;           // Wrong OTP
+
+        // Single-use: delete after successful verification
+        redisTemplate.delete(otpKey);
+        return true;
+    }
+
+    private void sendOtpEmail(String recipientEmail, String otp) throws Exception {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
         ApiKeyAuth apiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
         apiKeyAuth.setApiKey(brevoApiKey);
@@ -44,7 +94,7 @@ public class OtpService {
         sender.setName("SignalForge");
 
         SendSmtpEmailTo recipient = new SendSmtpEmailTo();
-        recipient.setEmail(email);
+        recipient.setEmail(recipientEmail);
 
         TransactionalEmailsApi transactionalEmailsApi = new TransactionalEmailsApi();
 
@@ -64,17 +114,5 @@ public class OtpService {
         );
 
         transactionalEmailsApi.sendTransacEmail(sendSmtpEmail);
-    }
-
-    public boolean verifyOtp(String email, String otp) {
-        OtpEntry entry = otpStore.get(email);
-        if (entry == null) return false;
-        if (Instant.now().isAfter(entry.expiresAt())) {
-            otpStore.remove(email);
-            return false;
-        }
-        if (!entry.otp().equals(otp)) return false;
-        otpStore.remove(email);
-        return true;
     }
 }

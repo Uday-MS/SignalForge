@@ -13,7 +13,7 @@ public class SessionService {
     RedisTemplate<String, String> redisTemplate;
 
     private static final String SESSION_PREFIX = "session:";
-    private static final long SESSION_TTL = 180;
+    private static final long SESSION_TTL = 3600; // 1 hour — matches JWT expiration
     private static final String REFRESH_PREFIX = "refresh:";
     private static final String USER_REFRESH_PREFIX = "user_refresh:";
     private static final long REFRESH_TTL = 7;

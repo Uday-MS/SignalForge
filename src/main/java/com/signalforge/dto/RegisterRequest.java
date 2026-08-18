@@ -25,6 +25,6 @@ public class RegisterRequest {
         return password;
     }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) { this.email = email != null ? email.toLowerCase().trim() : null; }
     public void setPassword(String password) { this.password = password; }
 }

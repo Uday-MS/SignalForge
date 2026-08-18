@@ -10,11 +10,10 @@ let allMonitors = [];
 document.addEventListener('DOMContentLoaded', () => {
     // Check URL params for OAuth callback
     const params = new URLSearchParams(window.location.search);
-    if (params.get('token')) {
-        accessToken = params.get('token');
-        currentEmail = params.get('email');
+    if (params.get('oauth') === 'success') {
         window.history.replaceState({}, '', '/index.html');
-        navigateTo('dashboard');
+        // Exchange the HttpOnly refresh token cookie for a JWT via the secure refresh endpoint
+        handleOAuthReturn();
         return;
     }
 
@@ -190,6 +189,32 @@ function animateCounter(elementId, targetValue) {
         if (progress < 1) requestAnimationFrame(update);
     }
     requestAnimationFrame(update);
+}
+
+// ============================================
+// OAUTH RETURN — Exchange cookie for JWT
+// ============================================
+async function handleOAuthReturn() {
+    try {
+        const res = await fetch(API_BASE + '/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'  // Send the HttpOnly refresh token cookie
+        });
+        if (res.ok) {
+            const data = await res.json();
+            accessToken = data.token;
+            currentEmail = data.email;
+            showToast('Welcome!', 'success');
+            navigateTo('dashboard');
+        } else {
+            showToast('Authentication failed. Please try again.', 'error');
+            navigateTo('login');
+        }
+    } catch (e) {
+        showToast('Network error during sign-in.', 'error');
+        navigateTo('login');
+    }
 }
 
 // ============================================

@@ -17,7 +17,7 @@ public class OtpRequest {
     public String getOtp() { return otp; }
     public String getPassword() { return password; }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) { this.email = email != null ? email.toLowerCase().trim() : null; }
     public void setOtp(String otp) { this.otp = otp; }
     public void setPassword(String password) { this.password = password; }
 }
